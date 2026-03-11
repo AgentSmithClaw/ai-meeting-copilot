@@ -1,31 +1,97 @@
 # AI Meeting Copilot for Business Teams
 
-## 项目定位
-一个面向企业团队的 AI 会议纪要与行动项助手，用于把非结构化会议内容转为结构化纪要、行动项、负责人和截止时间，提升沟通效率与执行闭环质量。
+An AI-powered meeting copilot that turns raw meeting notes into structured summaries, key decisions, action items, risks, and next steps.
 
-## MVP 功能
-1. 输入会议标题、参会人、会议记录
-2. 自动生成结构化会议纪要
-3. 自动提取行动项
-4. 自动识别负责人与截止日期
-5. 支持历史会议记录查看
-6. 支持导出 Markdown
+## Overview
+Teams often lose execution quality after meetings because notes are scattered, action items are unclear, and historical discussions are hard to retrieve. This project is designed to solve that problem by transforming unstructured meeting content into a clear, reusable workflow output.
 
-## 建议技术栈
-- Frontend: Next.js + Tailwind CSS
-- Backend: FastAPI
-- LLM: OpenAI / OpenRouter
-- DB: SQLite
+## Core Features
+- Generate structured meeting summaries from raw notes
+- Extract key decisions automatically
+- Identify action items, owners, and deadlines
+- Capture risks and pending issues
+- Save and review historical meeting records
+- Export meeting output in Markdown-friendly format
 
-## 输出结构
-- 会议摘要
-- 关键结论
-- 行动项列表
-- 风险与待确认事项
-- 下一步安排
+## Use Cases
+- Project weekly syncs
+- Cross-functional coordination meetings
+- Product requirement reviews
+- Internal planning sessions
+- Research and discussion meetings
 
-## 下一步
-- 完成 PRD
-- 完成 API 设计
-- 完成数据库设计
-- 搭建 MVP 骨架
+## Current Scope
+This repository currently contains the first public MVP scaffold, including:
+- Backend API prototype
+- Basic frontend input page
+- Sample meeting notes
+- Product requirement draft
+
+## Tech Stack
+- **Frontend:** HTML / future upgrade to Next.js
+- **Backend:** FastAPI
+- **Database:** SQLite
+- **LLM Layer:** Planned support for OpenAI / OpenRouter
+
+## Output Structure
+Each generated meeting result is organized into:
+- Summary
+- Key Decisions
+- Action Items
+- Risks / Open Questions
+- Next Steps
+
+## Repository Structure
+```bash
+ai-meeting-copilot/
+├── backend/
+│   ├── main.py
+│   └── requirements.txt
+├── docs/
+│   └── PRD.md
+├── frontend/
+│   └── index.html
+├── samples/
+│   └── sample-meeting-notes.md
+└── README.md
+```
+
+## Getting Started
+### 1. Start backend
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+### 2. Open frontend
+Open `frontend/index.html` in your browser.
+
+## Roadmap
+### Phase 1
+- [x] Project scaffold
+- [x] API prototype
+- [x] Basic input page
+- [x] Sample data
+
+### Phase 2
+- [ ] Improve structured output quality
+- [ ] Add meeting history page
+- [ ] Add action item management view
+- [ ] Clean up frontend UX
+
+### Phase 3
+- [ ] Integrate real LLM calls
+- [ ] Add audio-to-text workflow
+- [ ] Add notifications / reminders
+- [ ] Add polished portfolio demo assets
+
+## Product Direction
+This project is intended to become a practical business productivity tool rather than a toy demo. The goal is to build a portfolio-grade application that demonstrates:
+- AI-assisted information structuring
+- workflow efficiency improvement
+- action-item tracking
+- product thinking for collaboration scenarios
+
+## Status
+Early public portfolio version. Under active iteration.

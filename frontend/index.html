@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Meeting Copilot</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 40px; background: #0b1020; color: #f5f7fb; }
+      .wrap { max-width: 960px; margin: 0 auto; }
+      textarea, input { width: 100%; padding: 12px; margin: 8px 0 16px; border-radius: 8px; border: 1px solid #334155; background: #111827; color: #f8fafc; }
+      button { padding: 12px 18px; border: 0; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; }
+      .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin-top: 20px; }
+      pre { white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>AI Meeting Copilot</h1>
+      <p>把会议原始记录转成结构化纪要、行动项和跟进清单。</p>
+
+      <div class="card">
+        <input id="title" placeholder="会议标题，例如：项目周会" />
+        <input id="date" placeholder="会议日期，例如：2026-03-11" />
+        <input id="participants" placeholder="参会人，逗号分隔，例如：张三,李四,王五" />
+        <textarea id="notes" rows="10" placeholder="粘贴会议原始记录"></textarea>
+        <button onclick="submitMeeting()">生成并保存</button>
+      </div>
+
+      <div class="card" id="result" style="display:none;">
+        <h2>生成结果</h2>
+        <pre id="output"></pre>
+      </div>
+    </div>
+
+    <script>
+      async function submitMeeting() {
+        const payload = {
+          title: document.getElementById('title').value,
+          meeting_date: document.getElementById('date').value,
+          participants: document.getElementById('participants').value.split(',').map(s => s.trim()).filter(Boolean),
+          raw_notes: document.getElementById('notes').value,
+        };
+
+        const res = await fetch('http://127.0.0.1:8000/meetings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+      }
+    </script>
+  </body>
+</html>

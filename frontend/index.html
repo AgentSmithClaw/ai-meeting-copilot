@@ -14,55 +14,51 @@
         --muted: #94a3b8;
         --primary: #3b82f6;
         --accent: #22c55e;
-        --warn: #f59e0b;
       }
       * { box-sizing: border-box; }
       body { font-family: Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
-      .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 20px 48px; }
+      .wrap { max-width: 1240px; margin: 0 auto; padding: 32px 20px 48px; }
       h1, h2, h3 { margin-top: 0; }
       p { color: var(--muted); }
-      input, textarea {
+      input, textarea, select {
         width: 100%; padding: 12px; margin: 8px 0 16px; border-radius: 10px;
         border: 1px solid #334155; background: #111827; color: #f8fafc;
       }
       button {
-        padding: 12px 18px; border: 0; border-radius: 10px; background: var(--primary);
+        padding: 10px 16px; border: 0; border-radius: 10px; background: var(--primary);
         color: white; cursor: pointer; font-weight: 600;
       }
       .secondary { background: #1e293b; }
+      .success { background: #15803d; }
       .card {
         background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
         padding: 20px; margin-top: 20px;
       }
-      .grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; align-items: start; }
+      .grid { display: grid; grid-template-columns: 1fr 420px; gap: 20px; align-items: start; }
       .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-      .stat {
-        background: var(--panel-soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
-      }
+      .stat { background: var(--panel-soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
       .stat strong { font-size: 28px; display: block; margin-bottom: 6px; }
-      .tag {
-        display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px;
-        background: rgba(59, 130, 246, 0.15); color: #bfdbfe; margin-right: 8px;
-      }
+      .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(59,130,246,.15); color: #bfdbfe; margin-right: 8px; }
       .list { display: grid; gap: 12px; }
-      .list-item {
-        background: var(--panel-soft); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
-      }
-      .list-item small { color: var(--muted); }
+      .list-item { background: var(--panel-soft); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
       .section-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
       .empty { color: var(--muted); font-style: italic; }
       .result-block { margin-bottom: 18px; }
       ul { margin: 10px 0 0; padding-left: 18px; }
       .actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-      @media (max-width: 900px) {
-        .grid, .actions-grid, .stats { grid-template-columns: 1fr; }
+      .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .muted { color: var(--muted); }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .small { font-size: 12px; }
+      @media (max-width: 1000px) {
+        .grid, .actions-grid, .stats, .detail-grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
     <div class="wrap">
       <h1>AI Meeting Copilot</h1>
-      <p>把会议原始记录转成结构化纪要、行动项和跟进清单，并补上历史会议与待跟进行动项视图。</p>
+      <p>把会议原始记录转成结构化纪要、行动项和跟进清单，并补上历史会议、会议详情与行动项状态管理。</p>
 
       <div class="grid">
         <div>
@@ -71,8 +67,12 @@
             <input id="title" placeholder="会议标题，例如：项目周会" />
             <input id="date" placeholder="会议日期，例如：2026-03-11" />
             <input id="participants" placeholder="参会人，逗号分隔，例如：张三,李四,王五" />
-            <textarea id="notes" rows="12" placeholder="粘贴会议原始记录，例如：\n- 确认本周先完成首页原型\n- 行动项：张三今天整理接口文档\n- 风险：设计稿还未最终确认\n- 下一步：明天下午评审"></textarea>
-            <div style="display:flex; gap: 12px; flex-wrap: wrap;">
+            <textarea id="notes" rows="12" placeholder="粘贴会议原始记录，例如：
+- 确认本周先完成首页原型
+- 行动项：张三今天整理接口文档
+- 风险：设计稿还未最终确认
+- 下一步：明天下午评审"></textarea>
+            <div class="row">
               <button onclick="submitMeeting()">生成并保存</button>
               <button class="secondary" onclick="loadDashboard()">刷新历史与行动项</button>
             </div>
@@ -85,6 +85,14 @@
             </div>
             <div id="output"></div>
           </div>
+
+          <div class="card">
+            <div class="section-title">
+              <h2>会议详情</h2>
+              <span class="tag">Detail View</span>
+            </div>
+            <div id="meetingDetail" class="empty">点击右侧历史会议中的“查看详情”后，这里会展示完整内容。</div>
+          </div>
         </div>
 
         <div>
@@ -94,14 +102,8 @@
               <span class="tag">第二阶段</span>
             </div>
             <div class="stats">
-              <div class="stat">
-                <strong id="meetingCount">0</strong>
-                <span>历史会议</span>
-              </div>
-              <div class="stat">
-                <strong id="pendingCount">0</strong>
-                <span>待跟进行动项</span>
-              </div>
+              <div class="stat"><strong id="meetingCount">0</strong><span>历史会议</span></div>
+              <div class="stat"><strong id="pendingCount">0</strong><span>待跟进行动项</span></div>
             </div>
           </div>
 
@@ -170,6 +172,10 @@
               <strong>${item.task}</strong>
               <div><small>会议：${item.meeting_title}</small></div>
               <div><small>负责人：${item.owner} ｜ 截止：${item.deadline} ｜ 状态：${item.status}</small></div>
+              <div class="row" style="margin-top:10px;">
+                <button class="secondary" onclick="loadMeetingDetail(${item.meeting_id})">查看详情</button>
+                <button class="success" onclick="markActionDone(${item.meeting_id}, ${item.action_index})">标记已完成</button>
+              </div>
             </div>
           `).join('');
         }
@@ -183,10 +189,32 @@
               <strong>${item.title}</strong>
               <div><small>${item.meeting_date} ｜ 参会人：${item.participants}</small></div>
               <p>${item.summary}</p>
-              <div><small>结论 ${item.decision_count} 条 ｜ 行动项 ${item.action_count} 条</small></div>
+              <div class="row">
+                <small>结论 ${item.decision_count} 条 ｜ 行动项 ${item.action_count} 条</small>
+                <button class="secondary" onclick="loadMeetingDetail(${item.id})">查看详情</button>
+              </div>
             </div>
           `).join('');
         }
+      }
+
+      function renderMeetingDetail(data) {
+        const html = `
+          <div class="detail-grid">
+            <div class="list-item"><strong>会议标题</strong><div class="muted">${data.title}</div></div>
+            <div class="list-item"><strong>会议日期</strong><div class="muted">${data.meeting_date}</div></div>
+          </div>
+          <div class="list-item" style="margin-top:12px;"><strong>参会人</strong><div class="muted">${data.participants}</div></div>
+          <div class="list-item" style="margin-top:12px;"><strong>会议摘要</strong><p>${data.summary}</p></div>
+          <div class="actions-grid" style="margin-top:12px;">
+            <div class="list-item"><strong>关键结论</strong><ul>${data.key_decisions.map(i => `<li>${i}</li>`).join('')}</ul></div>
+            <div class="list-item"><strong>风险 / 待确认</strong><ul>${data.risks.map(i => `<li>${i}</li>`).join('')}</ul></div>
+            <div class="list-item"><strong>行动项</strong><ul>${data.action_items.map((item, idx) => `<li><strong>${item.task}</strong><br><span class="small">负责人：${item.owner} ｜ 截止：${item.deadline} ｜ 状态：${item.status}</span><br><button class="success" style="margin-top:8px;" onclick="markActionDone(${data.id}, ${idx})">标记已完成</button></li>`).join('')}</ul></div>
+            <div class="list-item"><strong>下一步</strong><ul>${data.next_steps.map(i => `<li>${i}</li>`).join('')}</ul></div>
+          </div>
+          <div class="list-item" style="margin-top:12px;"><strong>原始会议记录</strong><pre style="white-space:pre-wrap; color:#cbd5e1;">${data.raw_notes}</pre></div>
+        `;
+        document.getElementById('meetingDetail').innerHTML = html;
       }
 
       async function submitMeeting() {
@@ -205,13 +233,30 @@
 
         const data = await res.json();
         renderResult(data);
-        loadDashboard();
+        await loadDashboard();
+        if (data.id) await loadMeetingDetail(data.id);
       }
 
       async function loadDashboard() {
         const res = await fetch(`${API_BASE}/dashboard`);
         const data = await res.json();
         renderDashboard(data);
+      }
+
+      async function loadMeetingDetail(meetingId) {
+        const res = await fetch(`${API_BASE}/meetings/${meetingId}`);
+        const data = await res.json();
+        renderMeetingDetail(data);
+      }
+
+      async function markActionDone(meetingId, actionIndex) {
+        await fetch(`${API_BASE}/meetings/${meetingId}/action-items/${actionIndex}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: '已完成' })
+        });
+        await loadDashboard();
+        await loadMeetingDetail(meetingId);
       }
 
       loadDashboard();

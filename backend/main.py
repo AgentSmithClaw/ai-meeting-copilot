@@ -49,6 +49,10 @@ class ActionItem(BaseModel):
     status: str
 
 
+class ActionItemUpdate(BaseModel):
+    status: str
+
+
 class MeetingGenerateResponse(BaseModel):
     summary: str
     key_decisions: List[str]
@@ -86,6 +90,13 @@ def _guess_deadline(line: str, meeting_date: str) -> str:
 def _clean_task(line: str) -> str:
     line = re.sub(r"^(行动项|待办|TODO|Task)[:：]?", "", line, flags=re.IGNORECASE).strip()
     return line or "待补充行动项"
+
+
+def _parse_json_field(value: str, fallback):
+    try:
+        return json.loads(value or "")
+    except (json.JSONDecodeError, TypeError):
+        return fallback
 
 
 def mock_generate_structured_notes(payload: MeetingCreate) -> MeetingGenerateResponse:
@@ -151,6 +162,22 @@ def mock_generate_structured_notes(payload: MeetingCreate) -> MeetingGenerateRes
     )
 
 
+def _meeting_to_detail(meeting: Meeting):
+    return {
+        "id": meeting.id,
+        "title": meeting.title,
+        "meeting_date": meeting.meeting_date,
+        "participants": meeting.participants,
+        "raw_notes": meeting.raw_notes,
+        "summary": meeting.summary,
+        "key_decisions": _parse_json_field(meeting.key_decisions, []),
+        "action_items": _parse_json_field(meeting.action_items, []),
+        "risks": _parse_json_field(meeting.risks, []),
+        "next_steps": _parse_json_field(meeting.next_steps, []),
+        "created_at": meeting.created_at,
+    }
+
+
 @app.get("/health")
 def health():
     return {"ok": True}
@@ -195,7 +222,27 @@ def get_meeting(meeting_id: int):
         meeting = session.get(Meeting, meeting_id)
         if not meeting:
             raise HTTPException(status_code=404, detail="Meeting not found")
-    return meeting
+    return _meeting_to_detail(meeting)
+
+
+@app.patch("/meetings/{meeting_id}/action-items/{action_index}")
+def update_action_item_status(meeting_id: int, action_index: int, payload: ActionItemUpdate):
+    with Session(engine) as session:
+        meeting = session.get(Meeting, meeting_id)
+        if not meeting:
+            raise HTTPException(status_code=404, detail="Meeting not found")
+
+        actions = _parse_json_field(meeting.action_items, [])
+        if action_index < 0 or action_index >= len(actions):
+            raise HTTPException(status_code=404, detail="Action item not found")
+
+        actions[action_index]["status"] = payload.status
+        meeting.action_items = json.dumps(actions, ensure_ascii=False)
+        session.add(meeting)
+        session.commit()
+        session.refresh(meeting)
+
+    return {"ok": True, "meeting": _meeting_to_detail(meeting)}
 
 
 @app.get("/dashboard")
@@ -206,14 +253,8 @@ def dashboard():
     parsed_meetings = []
     pending_actions = []
     for meeting in meetings:
-        try:
-            actions = json.loads(meeting.action_items or "[]")
-        except json.JSONDecodeError:
-            actions = []
-        try:
-            decisions = json.loads(meeting.key_decisions or "[]")
-        except json.JSONDecodeError:
-            decisions = []
+        actions = _parse_json_field(meeting.action_items, [])
+        decisions = _parse_json_field(meeting.key_decisions, [])
 
         parsed_meetings.append(
             {
@@ -228,12 +269,13 @@ def dashboard():
             }
         )
 
-        for action in actions:
+        for index, action in enumerate(actions):
             if action.get("status") != "已完成":
                 pending_actions.append(
                     {
                         "meeting_id": meeting.id,
                         "meeting_title": meeting.title,
+                        "action_index": index,
                         **action,
                     }
                 )

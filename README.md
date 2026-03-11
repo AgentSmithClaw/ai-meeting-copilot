@@ -1,47 +1,54 @@
-# AI Meeting Copilot for Business Teams
+# AI会议纪要与行动项助手
 
-An AI-powered meeting copilot that turns raw meeting notes into structured summaries, key decisions, action items, risks, and next steps.
+一个面向企业团队的 AI 会议协作工具，用于把原始会议记录整理成结构化纪要、关键结论、行动项、风险事项和下一步安排。
 
-## Overview
-Teams often lose execution quality after meetings because notes are scattered, action items are unclear, and historical discussions are hard to retrieve. This project is designed to solve that problem by transforming unstructured meeting content into a clear, reusable workflow output.
+## 项目简介
+很多团队在开完会之后，真正的问题不是“没有开会”，而是：
+- 记录零散
+- 行动项不清楚
+- 负责人和截止时间模糊
+- 历史讨论难以追溯
+- 会后执行容易断掉
 
-## Core Features
-- Generate structured meeting summaries from raw notes
-- Extract key decisions automatically
-- Identify action items, owners, and deadlines
-- Capture risks and pending issues
-- Save and review historical meeting records
-- Export meeting output in Markdown-friendly format
+这个项目的目标，就是把非结构化会议内容转化为清晰、可跟进、可复用的结构化输出，提升团队沟通效率和执行闭环质量。
 
-## Use Cases
-- Project weekly syncs
-- Cross-functional coordination meetings
-- Product requirement reviews
-- Internal planning sessions
-- Research and discussion meetings
+## 核心功能
+- 根据原始会议记录生成结构化会议纪要
+- 自动提取关键结论
+- 自动识别行动项、负责人、截止时间
+- 提取风险与待确认事项
+- 保存历史会议记录
+- 支持导出适合 Markdown 使用的内容格式
 
-## Current Scope
-This repository currently contains the first public MVP scaffold, including:
-- Backend API prototype
-- Basic frontend input page
-- Sample meeting notes
-- Product requirement draft
+## 适用场景
+- 项目周会
+- 跨部门协同会
+- 产品需求评审会
+- 内部规划讨论会
+- 研究讨论类会议
 
-## Tech Stack
-- **Frontend:** HTML / future upgrade to Next.js
-- **Backend:** FastAPI
-- **Database:** SQLite
-- **LLM Layer:** Planned support for OpenAI / OpenRouter
+## 当前范围
+当前仓库已经包含第一版公开 MVP 骨架，主要包括：
+- 后端 API 原型
+- 基础前端输入页
+- 样例会议记录
+- 产品需求文档初稿
 
-## Output Structure
-Each generated meeting result is organized into:
-- Summary
-- Key Decisions
-- Action Items
-- Risks / Open Questions
-- Next Steps
+## 技术栈
+- **前端：** HTML（后续可升级为 Next.js）
+- **后端：** FastAPI
+- **数据库：** SQLite
+- **大模型接入：** 计划支持 OpenAI / OpenRouter
 
-## Repository Structure
+## 输出结构
+每次生成的会议结果默认包含以下模块：
+- 会议摘要
+- 关键结论
+- 行动项
+- 风险 / 待确认事项
+- 下一步安排
+
+## 仓库结构
 ```bash
 ai-meeting-copilot/
 ├── backend/
@@ -56,42 +63,43 @@ ai-meeting-copilot/
 └── README.md
 ```
 
-## Getting Started
-### 1. Start backend
+## 快速开始
+### 1）启动后端
 ```bash
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-### 2. Open frontend
-Open `frontend/index.html` in your browser.
+### 2）打开前端页面
+直接在浏览器中打开：
+`frontend/index.html`
 
-## Roadmap
-### Phase 1
-- [x] Project scaffold
-- [x] API prototype
-- [x] Basic input page
-- [x] Sample data
+## 路线图
+### 第一阶段
+- [x] 项目骨架初始化
+- [x] API 原型搭建
+- [x] 基础输入页面
+- [x] 样例数据准备
 
-### Phase 2
-- [ ] Improve structured output quality
-- [ ] Add meeting history page
-- [ ] Add action item management view
-- [ ] Clean up frontend UX
+### 第二阶段
+- [ ] 提升结构化输出质量
+- [ ] 增加历史会议页面
+- [ ] 增加行动项管理视图
+- [ ] 优化前端体验
 
-### Phase 3
-- [ ] Integrate real LLM calls
-- [ ] Add audio-to-text workflow
-- [ ] Add notifications / reminders
-- [ ] Add polished portfolio demo assets
+### 第三阶段
+- [ ] 接入真实大模型调用
+- [ ] 增加音频转文字流程
+- [ ] 增加提醒 / 通知能力
+- [ ] 补充更完整的作品集展示材料
 
-## Product Direction
-This project is intended to become a practical business productivity tool rather than a toy demo. The goal is to build a portfolio-grade application that demonstrates:
-- AI-assisted information structuring
-- workflow efficiency improvement
-- action-item tracking
-- product thinking for collaboration scenarios
+## 产品方向
+这个项目不是为了做一个简单的玩具 demo，而是希望做成一个真正有业务价值的协作效率工具。核心目标包括：
+- 用 AI 提升信息整理效率
+- 帮助团队建立行动项闭环
+- 提升会议产出的可执行性
+- 展示 AI 在协作场景中的产品化落地能力
 
-## Status
-Early public portfolio version. Under active iteration.
+## 当前状态
+当前为第一版公开作品集项目，正在持续迭代中。

@@ -5,34 +5,190 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Meeting Copilot</title>
     <style>
-      body { font-family: Arial, sans-serif; margin: 40px; background: #0b1020; color: #f5f7fb; }
-      .wrap { max-width: 960px; margin: 0 auto; }
-      textarea, input { width: 100%; padding: 12px; margin: 8px 0 16px; border-radius: 8px; border: 1px solid #334155; background: #111827; color: #f8fafc; }
-      button { padding: 12px 18px; border: 0; border-radius: 8px; background: #3b82f6; color: white; cursor: pointer; }
-      .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin-top: 20px; }
-      pre { white-space: pre-wrap; }
+      :root {
+        --bg: #0b1020;
+        --panel: #111827;
+        --panel-soft: #0f172a;
+        --line: #1f2937;
+        --text: #f5f7fb;
+        --muted: #94a3b8;
+        --primary: #3b82f6;
+        --accent: #22c55e;
+        --warn: #f59e0b;
+      }
+      * { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+      .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 20px 48px; }
+      h1, h2, h3 { margin-top: 0; }
+      p { color: var(--muted); }
+      input, textarea {
+        width: 100%; padding: 12px; margin: 8px 0 16px; border-radius: 10px;
+        border: 1px solid #334155; background: #111827; color: #f8fafc;
+      }
+      button {
+        padding: 12px 18px; border: 0; border-radius: 10px; background: var(--primary);
+        color: white; cursor: pointer; font-weight: 600;
+      }
+      .secondary { background: #1e293b; }
+      .card {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+        padding: 20px; margin-top: 20px;
+      }
+      .grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; align-items: start; }
+      .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .stat {
+        background: var(--panel-soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+      }
+      .stat strong { font-size: 28px; display: block; margin-bottom: 6px; }
+      .tag {
+        display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px;
+        background: rgba(59, 130, 246, 0.15); color: #bfdbfe; margin-right: 8px;
+      }
+      .list { display: grid; gap: 12px; }
+      .list-item {
+        background: var(--panel-soft); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+      }
+      .list-item small { color: var(--muted); }
+      .section-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+      .empty { color: var(--muted); font-style: italic; }
+      .result-block { margin-bottom: 18px; }
+      ul { margin: 10px 0 0; padding-left: 18px; }
+      .actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      @media (max-width: 900px) {
+        .grid, .actions-grid, .stats { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
     <div class="wrap">
       <h1>AI Meeting Copilot</h1>
-      <p>把会议原始记录转成结构化纪要、行动项和跟进清单。</p>
+      <p>把会议原始记录转成结构化纪要、行动项和跟进清单，并补上历史会议与待跟进行动项视图。</p>
 
-      <div class="card">
-        <input id="title" placeholder="会议标题，例如：项目周会" />
-        <input id="date" placeholder="会议日期，例如：2026-03-11" />
-        <input id="participants" placeholder="参会人，逗号分隔，例如：张三,李四,王五" />
-        <textarea id="notes" rows="10" placeholder="粘贴会议原始记录"></textarea>
-        <button onclick="submitMeeting()">生成并保存</button>
-      </div>
+      <div class="grid">
+        <div>
+          <div class="card">
+            <h2>新建会议</h2>
+            <input id="title" placeholder="会议标题，例如：项目周会" />
+            <input id="date" placeholder="会议日期，例如：2026-03-11" />
+            <input id="participants" placeholder="参会人，逗号分隔，例如：张三,李四,王五" />
+            <textarea id="notes" rows="12" placeholder="粘贴会议原始记录，例如：\n- 确认本周先完成首页原型\n- 行动项：张三今天整理接口文档\n- 风险：设计稿还未最终确认\n- 下一步：明天下午评审"></textarea>
+            <div style="display:flex; gap: 12px; flex-wrap: wrap;">
+              <button onclick="submitMeeting()">生成并保存</button>
+              <button class="secondary" onclick="loadDashboard()">刷新历史与行动项</button>
+            </div>
+          </div>
 
-      <div class="card" id="result" style="display:none;">
-        <h2>生成结果</h2>
-        <pre id="output"></pre>
+          <div class="card" id="result" style="display:none;">
+            <div class="section-title">
+              <h2>生成结果</h2>
+              <span class="tag">结构化输出</span>
+            </div>
+            <div id="output"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="section-title">
+              <h2>项目仪表盘</h2>
+              <span class="tag">第二阶段</span>
+            </div>
+            <div class="stats">
+              <div class="stat">
+                <strong id="meetingCount">0</strong>
+                <span>历史会议</span>
+              </div>
+              <div class="stat">
+                <strong id="pendingCount">0</strong>
+                <span>待跟进行动项</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">
+              <h2>待跟进行动项</h2>
+              <span class="tag">Action Items</span>
+            </div>
+            <div id="pendingActions" class="list"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">
+              <h2>历史会议</h2>
+              <span class="tag">History</span>
+            </div>
+            <div id="recentMeetings" class="list"></div>
+          </div>
+        </div>
       </div>
     </div>
 
     <script>
+      const API_BASE = 'http://127.0.0.1:8000';
+
+      function renderResult(data) {
+        const generated = data.generated || data;
+        const html = `
+          <div class="result-block">
+            <h3>会议摘要</h3>
+            <p>${generated.summary}</p>
+          </div>
+          <div class="actions-grid">
+            <div class="result-block">
+              <h3>关键结论</h3>
+              <ul>${generated.key_decisions.map(item => `<li>${item}</li>`).join('')}</ul>
+            </div>
+            <div class="result-block">
+              <h3>风险 / 待确认</h3>
+              <ul>${generated.risks.map(item => `<li>${item}</li>`).join('')}</ul>
+            </div>
+            <div class="result-block">
+              <h3>行动项</h3>
+              <ul>${generated.action_items.map(item => `<li><strong>${item.task}</strong><br>负责人：${item.owner} ｜ 截止：${item.deadline} ｜ 状态：${item.status}</li>`).join('')}</ul>
+            </div>
+            <div class="result-block">
+              <h3>下一步</h3>
+              <ul>${generated.next_steps.map(item => `<li>${item}</li>`).join('')}</ul>
+            </div>
+          </div>
+        `;
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('output').innerHTML = html;
+      }
+
+      function renderDashboard(data) {
+        document.getElementById('meetingCount').textContent = data.meeting_count || 0;
+        document.getElementById('pendingCount').textContent = data.pending_action_count || 0;
+
+        const pending = document.getElementById('pendingActions');
+        if (!data.pending_actions || data.pending_actions.length === 0) {
+          pending.innerHTML = '<div class="empty">暂无待跟进行动项</div>';
+        } else {
+          pending.innerHTML = data.pending_actions.map(item => `
+            <div class="list-item">
+              <strong>${item.task}</strong>
+              <div><small>会议：${item.meeting_title}</small></div>
+              <div><small>负责人：${item.owner} ｜ 截止：${item.deadline} ｜ 状态：${item.status}</small></div>
+            </div>
+          `).join('');
+        }
+
+        const meetings = document.getElementById('recentMeetings');
+        if (!data.recent_meetings || data.recent_meetings.length === 0) {
+          meetings.innerHTML = '<div class="empty">还没有历史会议记录</div>';
+        } else {
+          meetings.innerHTML = data.recent_meetings.map(item => `
+            <div class="list-item">
+              <strong>${item.title}</strong>
+              <div><small>${item.meeting_date} ｜ 参会人：${item.participants}</small></div>
+              <p>${item.summary}</p>
+              <div><small>结论 ${item.decision_count} 条 ｜ 行动项 ${item.action_count} 条</small></div>
+            </div>
+          `).join('');
+        }
+      }
+
       async function submitMeeting() {
         const payload = {
           title: document.getElementById('title').value,
@@ -41,16 +197,24 @@
           raw_notes: document.getElementById('notes').value,
         };
 
-        const res = await fetch('http://127.0.0.1:8000/meetings', {
+        const res = await fetch(`${API_BASE}/meetings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
 
         const data = await res.json();
-        document.getElementById('result').style.display = 'block';
-        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        renderResult(data);
+        loadDashboard();
       }
+
+      async function loadDashboard() {
+        const res = await fetch(`${API_BASE}/dashboard`);
+        const data = await res.json();
+        renderDashboard(data);
+      }
+
+      loadDashboard();
     </script>
   </body>
 </html>

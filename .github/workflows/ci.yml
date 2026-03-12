@@ -1,0 +1,75 @@
+# GitHub Actions CI/CD 配置
+
+> ai-meeting-copilot 项目 CI/CD 工作流
+
+---
+
+## 工作流文件
+
+创建 `.github/workflows/ci.yml`：
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      run: |
+        pytest
+    
+    - name: Lint
+      run: |
+        flake8 .
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Deploy
+      run: |
+        echo "Deploying..."
+```
+
+---
+
+## 使用说明
+
+1. 在项目根目录创建 `.github/workflows/` 目录
+2. 添加上述 `ci.yml` 文件
+3. GitHub Actions 会自动运行
+
+---
+
+## 测试
+
+```bash
+# 本地测试 workflow
+act -l
+```
+
+---
+
+最后更新：2026-03-12

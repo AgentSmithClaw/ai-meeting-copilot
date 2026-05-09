@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional, List
 import json
 import re
@@ -7,16 +7,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Session, create_engine, select
-
-
-app = FastAPI(title="AI Meeting Copilot API")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 engine = create_engine("sqlite:///meeting_copilot.db")
 
@@ -32,7 +22,7 @@ class Meeting(SQLModel, table=True):
     action_items: str = ""
     risks: str = ""
     next_steps: str = ""
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class MeetingCreate(BaseModel):
@@ -60,10 +50,20 @@ class MeetingGenerateResponse(BaseModel):
     risks: List[str]
     next_steps: List[str]
 
-
-@app.on_event("startup")
-def on_startup():
+def create_app() -> FastAPI:
     SQLModel.metadata.create_all(engine)
+    application = FastAPI(title="AI Meeting Copilot API")
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    return application
+
+
+app = create_app()
 
 
 def _normalized_lines(raw_notes: str) -> List[str]:
